@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jogo Pong</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body, html {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #000; /* Cor de fundo preto */
+    }
+    canvas {
+      border: 2px solid #FFA500; /* Borda laranja */
+      background-color: #000; /* Cor de fundo preto */
+    }
+  </style>
+</head>
+<body>
+  <canvas id="pongCanvas" width="600" height="400"></canvas>
+  <script>
+    const canvas = document.getElementById("pongCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const paddleWidth = 10;
+    const paddleHeight = 80;
+    const ballRadius = 10;
+
+    // Definições de cor
+    const paddleColor = "#FFA500"; // Laranja
+    const ballColor = "#00FF00"; // Verde
+
+    let playerY = (canvas.height - paddleHeight) / 2;
+    let computerY = (canvas.height - paddleHeight) / 2;
+    let ballX = canvas.width / 2;
+    let ballY = canvas.height / 2;
+    let ballSpeedX = 4;
+    let ballSpeedY = 4;
+
+    // Movimento do jogador
+    document.addEventListener("mousemove", movePaddle);
+    function movePaddle(e) {
+      const rect = canvas.getBoundingClientRect();
+      const root = document.documentElement;
+      playerY = e.clientY - rect.top - root.scrollTop - paddleHeight / 2;
+      if (playerY < 0) playerY = 0;
+      if (playerY + paddleHeight > canvas.height) playerY = canvas.height - paddleHeight;
+    }
+
+    function drawPaddle(x, y) {
+      ctx.fillStyle = paddleColor;
+      ctx.fillRect(x, y, paddleWidth, paddleHeight);
+    }
+
+    function drawBall() {
+      ctx.beginPath();
+      ctx.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);
+      ctx.fillStyle = ballColor;
+      ctx.fill();
+      ctx.closePath();
+    }
+
+    function resetBall() {
+      ballX = canvas.width / 2;
+      ballY = canvas.height / 2;
+      ballSpeedX = -ballSpeedX;
+      ballSpeedY = (Math.random() * 4 + 2) * (Math.random() > 0.5 ? 1 : -1);
+    }
+
+    function moveBall() {
+      ballX += ballSpeedX;
+      ballY += ballSpeedY;
+
+      if (ballY + ballRadius > canvas.height || ballY - ballRadius < 0) {
+        ballSpeedY = -ballSpeedY;
+      }
+
+      // Colisão com a raquete do jogador
+      if (
+        ballX - ballRadius < paddleWidth &&
+        ballY > playerY &&
+        ballY < playerY + paddleHeight
+      ) {
+        ballSpeedX = -ballSpeedX;
+      }
+
+      // Colisão com a raquete do computador
+      if (
+        ballX + ballRadius > canvas.width - paddleWidth &&
+        ballY > computerY &&
+        ballY < computerY + paddleHeight
+      ) {
+        ballSpeedX = -ballSpeedX;
+      }
+
+      // Se a bola sair da tela, reset
+      if (ballX + ballRadius > canvas.width || ballX - ballRadius < 0) {
+        resetBall();
+      }
+    }
+
+    function computerMovement() {
+      if (computerY + paddleHeight / 2 < ballY) {
+        computerY += 4;
+      } else if (computerY + paddleHeight / 2 > ballY) {
+        computerY -= 4;
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawPaddle(0, playerY); // Raquete do jogador
+      drawPaddle(canvas.width - paddleWidth, computerY); // Raquete do computador
+      drawBall();
+      moveBall();
+      computerMovement();
+      requestAnimationFrame(draw);
+    }
+
+    draw();
+  </script>
+</body>
+</html>
